@@ -16,34 +16,20 @@
     --accent:  #539bf5;
     --gap-bg:  #161b22;
     --err:     #e5534b;
+    --warn:    #daaa3f;
   }
-
-body.light {
-–bg:      #f6f8fa;
-–surface: #ffffff;
-–raised:  #eaeef2;
-–border:  #d0d7de;
-–text:    #1f2328;
-–muted:   #656d76;
-–accent:  #0969da;
-–gap-bg:  #eaeef2;
-–err:     #cf222e;
-}
-
-/* theme toggle button */
-.theme-toggle {
-background: none;
-border: 1px solid var(–border);
-color: var(–muted);
-font-size: 13px;
-line-height: 1;
-padding: 2px 7px;
-border-radius: 4px;
-cursor: pointer;
-transition: border-color .12s, color .12s;
-font-family: inherit;
-}
-.theme-toggle:hover { border-color: var(–accent); color: var(–accent); }
+  body.light {
+    --bg:      #f6f8fa;
+    --surface: #ffffff;
+    --raised:  #eaeef2;
+    --border:  #d0d7de;
+    --text:    #1f2328;
+    --muted:   #656d76;
+    --accent:  #0969da;
+    --gap-bg:  #eaeef2;
+    --err:     #cf222e;
+    --warn:    #9a6700;
+  }
 
 - { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -69,8 +55,16 @@ flex-shrink: 0;
 background: var(–surface);
 }
 .header-title { font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(–muted); }
+.header-right  { display:flex; align-items:center; gap:10px; }
 .header-stats  { font-size:10px; color:var(–muted); }
 .header-stats span { color:var(–text); }
+.header-stats .warn-badge {
+color: var(–warn);
+font-weight: 700;
+margin-left: 6px;
+animation: pulse .8s ease-in-out infinite alternate;
+}
+@keyframes pulse { from { opacity:.6 } to { opacity:1 } }
 
 /* ── Main ───────────────────────────────── */
 .main { display:flex; flex:1; min-height:0; }
@@ -99,19 +93,44 @@ flex:1; position:relative;
 background:var(–gap-bg); border:1px solid var(–border);
 border-radius:2px; overflow:hidden; cursor:default;
 }
+
+/* Segments */
 .segment {
 position:absolute; left:0; right:0;
 display:flex; align-items:center; justify-content:center;
 overflow:hidden; transition:filter .12s;
-border-bottom:1px solid rgba(0,0,0,.35);
+border-bottom:1px solid rgba(0,0,0,.25);
 }
-.segment:hover { filter:brightness(1.25); }
+.segment:hover { filter:brightness(1.2); }
 .segment.clickable { cursor:pointer; }
+.segment.overlap {
+background-image: repeating-linear-gradient(
+-45deg,
+transparent, transparent 3px,
+rgba(229,83,75,.18) 3px, rgba(229,83,75,.18) 6px
+) !important;
+border-top-color: var(–err) !important;
+}
+
+/* Gap regions */
+.gap-segment {
+position:absolute; left:0; right:0;
+background-image: repeating-linear-gradient(
+45deg,
+transparent, transparent 5px,
+rgba(118,131,144,.07) 5px, rgba(118,131,144,.07) 10px
+);
+border-top: 1px dashed var(–border);
+pointer-events: auto;
+cursor: default;
+}
+.gap-segment:hover { background-color: rgba(118,131,144,.06); }
+
 .seg-label {
 font-size:9px; font-weight:700;
 white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 padding:0 3px; pointer-events:none;
-letter-spacing:.04em; text-shadow:0 1px 3px rgba(0,0,0,.6);
+letter-spacing:.04em; text-shadow:0 1px 3px rgba(0,0,0,.55);
 }
 
 /* ── Table panel ────────────────────────── */
@@ -127,6 +146,12 @@ cursor:pointer; border-radius:4px; transition:border-color .12s, color .12s;
 .btn-screenshot { border-color:#57ab5a44; }
 .btn-screenshot:hover { border-color:#57ab5a; color:#57ab5a; }
 .btn.capturing { opacity:.5; pointer-events:none; }
+.theme-toggle {
+background:none; border:1px solid var(–border); color:var(–muted);
+font-size:13px; line-height:1; padding:2px 7px; border-radius:4px;
+cursor:pointer; transition:border-color .12s, color .12s; font-family:inherit;
+}
+.theme-toggle:hover { border-color:var(–accent); color:var(–accent); }
 
 table { width:100%; border-collapse:collapse; flex-shrink:0; }
 thead th {
@@ -136,7 +161,13 @@ border-bottom:1px solid var(–border); text-align:left;
 }
 tbody tr { transition:background .08s; }
 tbody tr:hover { background:var(–raised); }
-tbody td { padding:2px 3px; border-bottom:1px solid #1c2128; vertical-align:middle; }
+tbody tr.row-overlap { background: rgba(229,83,75,.07); }
+tbody tr.row-overlap:hover { background: rgba(229,83,75,.12); }
+tbody td { padding:2px 3px; border-bottom:1px solid var(–raised); vertical-align:middle; }
+
+/* warn icon cell */
+.warn-cell { width:20px; text-align:center; font-size:11px; }
+.warn-icon { color:var(–err); cursor:default; }
 
 /* Color picker */
 .color-cell { width:28px; text-align:center; }
@@ -166,7 +197,26 @@ background:none; border:none; color:var(–muted);
 cursor:pointer; font-size:15px; line-height:1;
 padding:1px 6px; border-radius:3px; transition:color .1s, background .1s;
 }
-.del-btn:hover { color:var(–err); background:#271b1b; }
+.del-btn:hover { color:var(–err); background:rgba(229,83,75,.1); }
+
+/* ── Overlap warnings panel ─────────────── */
+.warnings {
+flex-shrink:0;
+border: 1px solid rgba(229,83,75,.4);
+border-radius:5px;
+background: rgba(229,83,75,.06);
+padding: 8px 12px;
+display:none;
+flex-direction:column;
+gap:4px;
+}
+.warnings.visible { display:flex; }
+.warnings-title {
+font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+color:var(–err); margin-bottom:2px;
+}
+.warning-row { font-size:11px; color:var(–muted); }
+.warning-row b { color:var(–err); font-weight:400; }
 
 /* ── Tooltip ────────────────────────────── */
 #tooltip {
@@ -178,6 +228,8 @@ display:none; box-shadow:0 4px 16px rgba(0,0,0,.5);
 .tt-name { font-weight:700; margin-bottom:5px; }
 .tt-row  { color:var(–muted); margin-top:2px; }
 .tt-row b { color:var(–text); font-weight:400; }
+.tt-warn { color:var(–err); margin-top:5px; font-size:10px; }
+.tt-gap  { color:var(–muted); font-style:italic; }
 
 ::-webkit-scrollbar { width:6px; height:6px; }
 ::-webkit-scrollbar-track { background:transparent; }
@@ -189,7 +241,10 @@ display:none; box-shadow:0 4px 16px rgba(0,0,0,.5);
 
 <div class="header">
   <span class="header-title">&#9632; Memory Map</span>
-  <div style="display:flex;align-items:center;gap:10px"><span class="header-stats" id="headerStats"></span><button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark mode">&#9790;</button></div>
+  <div class="header-right">
+    <span class="header-stats" id="headerStats"></span>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark">&#9790;</button>
+  </div>
 </div>
 
 <div class="main">
@@ -210,19 +265,29 @@ display:none; box-shadow:0 4px 16px rgba(0,0,0,.5);
         <button class="btn" onclick="addRow()">+ Add Region</button>
       </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th class="color-cell">Color</th>
-          <th style="width:82px">Offset</th>
-          <th style="width:74px">Size</th>
-          <th>Name</th>
-          <th>Reference</th>
-          <th style="width:24px"></th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
+
+```
+<table>
+  <thead>
+    <tr>
+      <th class="warn-cell"></th>
+      <th class="color-cell">Color</th>
+      <th style="width:82px">Offset</th>
+      <th style="width:74px">Size</th>
+      <th>Name</th>
+      <th>Reference</th>
+      <th style="width:24px"></th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<div class="warnings" id="warningsPanel">
+  <div class="warnings-title">&#9888; Overlaps detected</div>
+  <div id="warningsList"></div>
+</div>
+```
+
   </div>
 
 </div>
@@ -230,12 +295,14 @@ display:none; box-shadow:0 4px 16px rgba(0,0,0,.5);
 <div id="tooltip"></div>
 
 <script>
+// ── Palette ───────────────────────────────────────────────────────────
 const PALETTE = [
   '#539bf5','#57ab5a','#daaa3f','#e5534b','#b083f0',
   '#39c5cf','#f69d50','#6cb6ff','#8ddb8c','#cc6b2c'
 ];
 
-let rows = [
+// ── Default rows (used only if no saved state) ────────────────────────
+const DEFAULT_ROWS = [
   { offset:'0x0000', size:'0x0400', name:'Vector Table', ref:'', color:'#539bf5' },
   { offset:'0x0400', size:'0x1000', name:'Bootloader',   ref:'', color:'#57ab5a' },
   { offset:'0x1400', size:'0x4000', name:'FIP0',         ref:'', color:'#daaa3f' },
@@ -243,6 +310,26 @@ let rows = [
   { offset:'0x9400', size:'0x2000', name:'Config',       ref:'', color:'#b083f0' },
 ];
 
+// ── State ─────────────────────────────────────────────────────────────
+let rows = loadState();
+
+// ── Persistence ───────────────────────────────────────────────────────
+function saveState() {
+  try { localStorage.setItem('memmap-rows', JSON.stringify(rows)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('memmap-rows');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  } catch(e) {}
+  return DEFAULT_ROWS.map(r => Object.assign({}, r));
+}
+
+// ── Parsing ───────────────────────────────────────────────────────────
 function parseNum(s) {
   if (!s || !s.trim()) return NaN;
   s = s.trim();
@@ -265,37 +352,81 @@ function fmtSize(n) {
   return n + ' B';
 }
 
-function renderTable() {
+// ── Overlap detection ─────────────────────────────────────────────────
+function findOverlaps(valid) {
+  // valid is already sorted by offset
+  const overlapping = new Set(); // indices into valid[]
+  const pairs = [];              // human-readable descriptions
+
+  for (let i = 0; i < valid.length; i++) {
+    for (let j = i + 1; j < valid.length; j++) {
+      const a = valid[i], b = valid[j];
+      const overlapStart = Math.max(a.offset, b.offset);
+      const overlapEnd   = Math.min(a.offset + a.size, b.offset + b.size);
+      if (overlapEnd > overlapStart) {
+        overlapping.add(i);
+        overlapping.add(j);
+        pairs.push({
+          nameA: a.name || '(unnamed)', nameB: b.name || '(unnamed)',
+          start: overlapStart, size: overlapEnd - overlapStart,
+          colorA: a.color,    colorB: b.color,
+        });
+      }
+    }
+  }
+  return { overlapping, pairs };
+}
+
+// ── Gap detection ─────────────────────────────────────────────────────
+function findGaps(valid) {
+  const gaps = [];
+  for (let i = 0; i < valid.length - 1; i++) {
+    const end   = valid[i].offset + valid[i].size;
+    const start = valid[i+1].offset;
+    if (start > end) gaps.push({ offset: end, size: start - end });
+  }
+  return gaps;
+}
+
+// ── Table render ──────────────────────────────────────────────────────
+function renderTable(overlapIdxSet) {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
+  // build valid[] in same order as renderViz for index matching
+  const valid = rows
+    .map((r, origIdx) => ({ offset:parseNum(r.offset), size:parseNum(r.size), name:r.name, ref:r.ref, color:r.color, origIdx }))
+    .filter(r => !isNaN(r.offset) && !isNaN(r.size) && r.size > 0);
+  valid.sort((a,b) => a.offset - b.offset);
+  const overlapOrigIdxs = new Set([...overlapIdxSet].map(i => valid[i]?.origIdx));
+
   rows.forEach((row, i) => {
+    const isOverlap = overlapOrigIdxs.has(i);
     const tr = document.createElement('tr');
+    if (isOverlap) tr.classList.add('row-overlap');
     tr.innerHTML =
-      '<td class="color-cell">' +
-        '<input type="color" class="color-pick" data-i="' + i + '" value="' + row.color + '" title="Pick color">' +
-      '</td>' +
+      '<td class="warn-cell">' + (isOverlap ? '<span class="warn-icon" title="Overlaps another region">!</span>' : '') + '</td>' +
+      '<td class="color-cell"><input type="color" class="color-pick" data-i="' + i + '" value="' + row.color + '" title="Pick color"></td>' +
       '<td><input data-i="' + i + '" data-f="offset" value="' + row.offset + '" placeholder="0x0000"></td>' +
       '<td><input data-i="' + i + '" data-f="size"   value="' + row.size   + '" placeholder="0x400"></td>' +
       '<td><input data-i="' + i + '" data-f="name"   value="' + row.name   + '" placeholder="Region name"></td>' +
       '<td><input data-i="' + i + '" data-f="ref"    value="' + row.ref    + '" placeholder="https://..."></td>' +
-      '<td><button class="del-btn" title="Delete" onclick="deleteRow(' + i + ')">x</button></td>';
+      '<td><button class="del-btn" title="Delete" onclick="deleteRow(' + i + ')">&#215;</button></td>';
     tbody.appendChild(tr);
   });
 
-  tbody.querySelectorAll('.color-pick').forEach(picker => {
-    picker.addEventListener('input', e => {
+  tbody.querySelectorAll('.color-pick').forEach(p => {
+    p.addEventListener('input', e => {
       rows[+e.target.dataset.i].color = e.target.value;
-      renderViz();
+      saveState(); render();
     });
   });
-
   tbody.querySelectorAll('input[data-f]').forEach(inp => {
     inp.addEventListener('input', e => {
       const i = +e.target.dataset.i, f = e.target.dataset.f;
       rows[i][f] = e.target.value;
       validateInput(e.target, f);
-      renderViz();
+      saveState(); render();
     });
   });
 
@@ -308,57 +439,108 @@ function validateInput(inp, f) {
     inp.classList.toggle('invalid', isNaN(v) || (f === 'size' && v <= 0));
   }
 }
-
 function validateAll() {
-  document.querySelectorAll('#tbody input[data-f]').forEach(inp => {
-    validateInput(inp, inp.dataset.f);
-  });
+  document.querySelectorAll('#tbody input[data-f]').forEach(inp => validateInput(inp, inp.dataset.f));
 }
 
+// ── Viz render ────────────────────────────────────────────────────────
 function renderViz() {
   const bar    = document.getElementById('memBar');
   const addrEl = document.getElementById('addrCol');
   const stats  = document.getElementById('headerStats');
+  const wPanel = document.getElementById('warningsPanel');
+  const wList  = document.getElementById('warningsList');
   bar.innerHTML = ''; addrEl.innerHTML = '';
 
   const valid = rows
     .map(r => ({ offset:parseNum(r.offset), size:parseNum(r.size), name:r.name, ref:r.ref, color:r.color }))
     .filter(r => !isNaN(r.offset) && !isNaN(r.size) && r.size > 0);
 
-  if (!valid.length) { stats.innerHTML = ''; return; }
+  if (!valid.length) { stats.innerHTML = ''; wPanel.classList.remove('visible'); return valid; }
   valid.sort((a,b) => a.offset - b.offset);
 
   const addrMin  = valid[0].offset;
   const addrMax  = Math.max(...valid.map(r => r.offset + r.size));
   const addrSpan = addrMax - addrMin;
-  if (addrSpan <= 0) return;
+  if (addrSpan <= 0) return valid;
 
+  // ── Overlaps ──
+  const { overlapping, pairs } = findOverlaps(valid);
+
+  // ── Gaps ──
+  const gaps = findGaps(valid);
+  const totalGap = gaps.reduce((a,g) => a + g.size, 0);
+
+  // ── Stats bar ──
   const totalUsed = valid.reduce((a,r) => a + r.size, 0);
-  stats.innerHTML = '<span>' + valid.length + '</span> regions &middot; <span>' + fmtHex(addrMin) + '</span> &rarr; <span>' + fmtHex(addrMax) + '</span> &middot; <span>' + fmtSize(totalUsed) + '</span> used';
+  let statsHtml = '<span>' + valid.length + '</span> regions &middot; '
+    + '<span>' + fmtHex(addrMin) + '</span> &rarr; <span>' + fmtHex(addrMax) + '</span> &middot; '
+    + '<span>' + fmtSize(totalUsed) + '</span> mapped';
+  if (totalGap > 0)
+    statsHtml += ' &middot; <span>' + fmtSize(totalGap) + '</span> unallocated';
+  if (pairs.length)
+    statsHtml += '<span class="warn-badge">&#9888; ' + pairs.length + ' overlap' + (pairs.length > 1 ? 's' : '') + '</span>';
+  stats.innerHTML = statsHtml;
 
-  valid.forEach(r => {
+  // ── Warnings panel ──
+  if (pairs.length) {
+    wPanel.classList.add('visible');
+    wList.innerHTML = pairs.map(p =>
+      '<div class="warning-row">'
+      + '<b style="color:' + p.colorA + '">' + p.nameA + '</b>'
+      + ' &harr; '
+      + '<b style="color:' + p.colorB + '">' + p.nameB + '</b>'
+      + ' &nbsp;&#8203;overlaps <b>' + fmtSize(p.size) + '</b> at <b>' + fmtHex(p.start) + '</b>'
+      + '</div>'
+    ).join('');
+  } else {
+    wPanel.classList.remove('visible');
+  }
+
+  // ── Draw gap regions first (behind segments) ──
+  gaps.forEach(g => {
+    const top    = ((g.offset - addrMin) / addrSpan) * 100;
+    const height = (g.size / addrSpan) * 100;
+    const gap = document.createElement('div');
+    gap.className = 'gap-segment';
+    gap.style.top    = top + '%';
+    gap.style.height = Math.max(height, 0.4) + '%';
+    gap.addEventListener('mouseenter', e => showGapTip(e, g));
+    gap.addEventListener('mousemove',  moveTip);
+    gap.addEventListener('mouseleave', hideTip);
+    bar.appendChild(gap);
+  });
+
+  // ── Draw segments ──
+  valid.forEach((r, i) => {
     const top    = ((r.offset - addrMin) / addrSpan) * 100;
     const height = (r.size   / addrSpan) * 100;
+    const isOv   = overlapping.has(i);
+
     const seg = document.createElement('div');
-    seg.className = 'segment' + (r.ref && r.ref.startsWith('http') ? ' clickable' : '');
+    seg.className = 'segment'
+      + (isOv ? ' overlap' : '')
+      + (r.ref && r.ref.startsWith('http') ? ' clickable' : '');
     seg.style.top        = top + '%';
     seg.style.height     = Math.max(height, 0.4) + '%';
-    seg.style.background = r.color + '28';
-    seg.style.borderTop  = '1px solid ' + r.color;
+    seg.style.background = isOv ? 'rgba(229,83,75,.14)' : r.color + '28';
+    seg.style.borderTop  = '1px solid ' + (isOv ? 'var(--err)' : r.color);
+
     if (height > 2.5) {
       const lbl = document.createElement('div');
       lbl.className = 'seg-label';
       lbl.textContent = r.name || '-';
-      lbl.style.color = r.color;
+      lbl.style.color = isOv ? 'var(--err)' : r.color;
       seg.appendChild(lbl);
     }
-    seg.addEventListener('mouseenter', e => showTip(e, r));
+    seg.addEventListener('mouseenter', e => showTip(e, r, isOv));
     seg.addEventListener('mousemove',  moveTip);
     seg.addEventListener('mouseleave', hideTip);
     if (r.ref && r.ref.startsWith('http')) seg.addEventListener('click', () => window.open(r.ref, '_blank'));
     bar.appendChild(seg);
   });
 
+  // ── Address ticks ──
   const tickAddrs = [...new Set([addrMin, ...valid.map(r => r.offset), addrMax])].sort((a,b)=>a-b);
   let lastPct = -99;
   tickAddrs.forEach(addr => {
@@ -371,16 +553,37 @@ function renderViz() {
     tick.textContent = fmtHex(addr);
     addrEl.appendChild(tick);
   });
+
+  return { valid, overlapping };
 }
 
-function showTip(e, r) {
+// ── Master render (keeps table + viz in sync) ─────────────────────────
+function render() {
+  const result = renderViz();
+  const overlapping = result && result.overlapping ? result.overlapping : new Set();
+  renderTable(overlapping);
+}
+
+// ── Tooltips ──────────────────────────────────────────────────────────
+function showTip(e, r, isOverlap) {
   const tt = document.getElementById('tooltip');
   tt.innerHTML =
-    '<div class="tt-name" style="color:' + r.color + '">' + (r.name || '(unnamed)') + '</div>' +
+    '<div class="tt-name" style="color:' + (isOverlap ? 'var(--err)' : r.color) + '">' + (r.name || '(unnamed)') + '</div>' +
     '<div class="tt-row">Start &nbsp;<b>' + fmtHex(r.offset) + '</b></div>' +
     '<div class="tt-row">Size &nbsp;&nbsp;<b>' + fmtHex(r.size) + ' (' + fmtSize(r.size) + ')</b></div>' +
     '<div class="tt-row">End &nbsp;&nbsp;&nbsp;<b>' + fmtHex(r.offset + r.size) + '</b></div>' +
-    (r.ref ? '<div class="tt-row" style="margin-top:5px;color:' + r.color + '">' + r.ref + '</div>' : '');
+    (r.ref ? '<div class="tt-row" style="margin-top:5px;color:' + r.color + '">' + r.ref + '</div>' : '') +
+    (isOverlap ? '<div class="tt-warn">&#9888; Overlaps another region</div>' : '');
+  tt.style.display = 'block';
+  moveTip(e);
+}
+function showGapTip(e, g) {
+  const tt = document.getElementById('tooltip');
+  tt.innerHTML =
+    '<div class="tt-name tt-gap">Unallocated</div>' +
+    '<div class="tt-row">Start &nbsp;<b>' + fmtHex(g.offset) + '</b></div>' +
+    '<div class="tt-row">Size &nbsp;&nbsp;<b>' + fmtHex(g.size) + ' (' + fmtSize(g.size) + ')</b></div>' +
+    '<div class="tt-row">End &nbsp;&nbsp;&nbsp;<b>' + fmtHex(g.offset + g.size) + '</b></div>';
   tt.style.display = 'block';
   moveTip(e);
 }
@@ -392,19 +595,19 @@ function moveTip(e) {
 }
 function hideTip() { document.getElementById('tooltip').style.display = 'none'; }
 
+// ── Row ops ───────────────────────────────────────────────────────────
 function addRow() {
   rows.push({ offset:'', size:'', name:'', ref:'', color: PALETTE[rows.length % PALETTE.length] });
-  renderTable();
-  renderViz();
+  saveState(); render();
   document.querySelectorAll('#tbody tr:last-child input[data-f]')[0]?.focus();
 }
 
 function deleteRow(i) {
   rows.splice(i, 1);
-  renderTable();
-  renderViz();
+  saveState(); render();
 }
 
+// ── Screenshot ────────────────────────────────────────────────────────
 async function takeScreenshot() {
   const btn = document.getElementById('screenshotBtn');
   btn.textContent = '...';
@@ -419,17 +622,22 @@ async function takeScreenshot() {
   }
   const toHide = document.querySelectorAll('.del-btn, #screenshotBtn');
   toHide.forEach(el => el.style.visibility = 'hidden');
+  const isLight = document.body.classList.contains('light');
   try {
-    const canvas = await html2canvas(document.querySelector('.main'), { backgroundColor:'#0d1117', scale:2, useCORS:true });
+    const canvas = await html2canvas(document.querySelector('.main'), {
+      backgroundColor: isLight ? '#f6f8fa' : '#0d1117', scale:2, useCORS:true
+    });
     const full = document.createElement('canvas');
     const hdr  = document.querySelector('.header');
     const hh   = hdr.offsetHeight;
     full.width  = canvas.width;
     full.height = canvas.height + hh * 2;
     const ctx = full.getContext('2d');
-    ctx.fillStyle = '#161b22';
+    ctx.fillStyle = isLight ? '#ffffff' : '#161b22';
     ctx.fillRect(0, 0, full.width, hh * 2);
-    const hCanvas = await html2canvas(hdr, { backgroundColor:'#161b22', scale:2, useCORS:true });
+    const hCanvas = await html2canvas(hdr, {
+      backgroundColor: isLight ? '#ffffff' : '#161b22', scale:2, useCORS:true
+    });
     ctx.drawImage(hCanvas, 0, 0);
     ctx.drawImage(canvas, 0, hh * 2);
     const link = document.createElement('a');
@@ -443,29 +651,23 @@ async function takeScreenshot() {
   }
 }
 
-
-// -- Theme toggle -------------------------------------------------------
+// ── Theme ─────────────────────────────────────────────────────────────
 function toggleTheme() {
   const light = document.body.classList.toggle('light');
   document.getElementById('themeBtn').textContent = light ? '\u263C' : '\u263E';
-  localStorage.setItem('memmap-theme', light ? 'light' : 'dark');
+  try { localStorage.setItem('memmap-theme', light ? 'light' : 'dark'); } catch(e) {}
 }
 
-// restore saved preference
+// ── Init ──────────────────────────────────────────────────────────────
 (function() {
-  const saved = localStorage.getItem('memmap-theme');
-  if (saved === 'light') {
-    document.body.classList.add('light');
-    // btn not rendered yet; will be set on first load
-    const btn = document.getElementById('themeBtn');
-    if (btn) btn.textContent = '\u263C';
-  }
+  try {
+    if (localStorage.getItem('memmap-theme') === 'light') document.body.classList.add('light');
+  } catch(e) {}
 })();
 
-renderTable();
-renderViz();
-// set correct icon after DOM ready
-document.getElementById("themeBtn").textContent = document.body.classList.contains("light") ? "\u263C" : "\u263E";
+render();
+document.getElementById('themeBtn').textContent =
+  document.body.classList.contains('light') ? '\u263C' : '\u263E';
 </script>
 
 </body>
