@@ -18,6 +18,33 @@
     --err:     #e5534b;
   }
 
+body.light {
+–bg:      #f6f8fa;
+–surface: #ffffff;
+–raised:  #eaeef2;
+–border:  #d0d7de;
+–text:    #1f2328;
+–muted:   #656d76;
+–accent:  #0969da;
+–gap-bg:  #eaeef2;
+–err:     #cf222e;
+}
+
+/* theme toggle button */
+.theme-toggle {
+background: none;
+border: 1px solid var(–border);
+color: var(–muted);
+font-size: 13px;
+line-height: 1;
+padding: 2px 7px;
+border-radius: 4px;
+cursor: pointer;
+transition: border-color .12s, color .12s;
+font-family: inherit;
+}
+.theme-toggle:hover { border-color: var(–accent); color: var(–accent); }
+
 - { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -162,7 +189,7 @@ display:none; box-shadow:0 4px 16px rgba(0,0,0,.5);
 
 <div class="header">
   <span class="header-title">&#9632; Memory Map</span>
-  <span class="header-stats" id="headerStats"></span>
+  <div style="display:flex;align-items:center;gap:10px"><span class="header-stats" id="headerStats"></span><button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark mode">&#9790;</button></div>
 </div>
 
 <div class="main">
@@ -416,8 +443,29 @@ async function takeScreenshot() {
   }
 }
 
+
+// -- Theme toggle -------------------------------------------------------
+function toggleTheme() {
+  const light = document.body.classList.toggle('light');
+  document.getElementById('themeBtn').textContent = light ? '\u263C' : '\u263E';
+  localStorage.setItem('memmap-theme', light ? 'light' : 'dark');
+}
+
+// restore saved preference
+(function() {
+  const saved = localStorage.getItem('memmap-theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    // btn not rendered yet; will be set on first load
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '\u263C';
+  }
+})();
+
 renderTable();
 renderViz();
+// set correct icon after DOM ready
+document.getElementById("themeBtn").textContent = document.body.classList.contains("light") ? "\u263C" : "\u263E";
 </script>
 
 </body>
