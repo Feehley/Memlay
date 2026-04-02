@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Map</title>
+<style>
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --raised:   #1c2128;
+    --border:   #30363d;
+    --text:     #cdd9e5;
+    --muted:    #768390;
+    --accent:   #539bf5;
+    --gap-bg:   #161b22;
+    --err:      #e5534b;
+  }
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Cascadia Code’, ‘Fira Code’, ‘JetBrains Mono’, ‘Consolas’, ui-monospace, monospace;
+font-size: 12px;
+height: 100vh;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+}
+
+/* ── Header ─────────────────────────────── */
+.header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 7px 14px;
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+background: var(–surface);
+}
+.header-title {
+font-size: 11px;
+font-weight: 600;
+letter-spacing: .12em;
+text-transform: uppercase;
+color: var(–muted);
+}
+.header-stats {
+font-size: 10px;
+color: var(–muted);
+}
+.header-stats span { color: var(–text); }
+
+/* ── Main layout ─────────────────────────── */
+.main {
+display: flex;
+flex: 1;
+min-height: 0;
+}
+
+/* ── Viz panel ───────────────────────────── */
+.viz-panel {
+width: 172px;
+flex-shrink: 0;
+border-right: 1px solid var(–border);
+padding: 14px 6px 14px 10px;
+display: flex;
+flex-direction: column;
+gap: 8px;
+overflow: hidden;
+}
+.panel-label {
+font-size: 9px;
+letter-spacing: .12em;
+text-transform: uppercase;
+color: var(–muted);
+text-align: center;
+}
+.bar-wrapper {
+flex: 1;
+display: flex;
+gap: 6px;
+min-height: 0;
+}
+.addr-col {
+width: 52px;
+flex-shrink: 0;
+position: relative;
+}
+.addr-tick {
+position: absolute;
+right: 0;
+font-size: 9px;
+color: var(–muted);
+transform: translateY(-50%);
+text-align: right;
+white-space: nowrap;
+}
+.addr-tick::after {
+content: ‘’;
+position: absolute;
+right: -7px;
+top: 50%;
+width: 5px;
+height: 1px;
+background: var(–border);
+}
+.memory-bar {
+flex: 1;
+position: relative;
+background: var(–gap-bg);
+border: 1px solid var(–border);
+border-radius: 2px;
+overflow: hidden;
+cursor: default;
+}
+.segment {
+position: absolute;
+left: 0; right: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+overflow: hidden;
+transition: filter .12s;
+border-bottom: 1px solid rgba(0,0,0,.35);
+}
+.segment:hover { filter: brightness(1.25); }
+.segment.clickable { cursor: pointer; }
+.seg-label {
+font-size: 9px;
+font-weight: 700;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+padding: 0 3px;
+pointer-events: none;
+letter-spacing: .04em;
+text-shadow: 0 1px 3px rgba(0,0,0,.6);
+}
+
+/* ── Table panel ─────────────────────────── */
+.table-panel {
+flex: 1;
+overflow: auto;
+padding: 14px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+.table-toolbar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-shrink: 0;
+}
+.btn {
+background: var(–raised);
+border: 1px solid var(–border);
+color: var(–text);
+padding: 4px 11px;
+font-size: 11px;
+font-family: inherit;
+cursor: pointer;
+border-radius: 4px;
+transition: border-color .12s, color .12s;
+}
+.btn:hover { border-color: var(–accent); color: var(–accent); }
+
+table {
+width: 100%;
+border-collapse: collapse;
+flex-shrink: 0;
+}
+thead th {
+font-size: 9px;
+font-weight: 500;
+letter-spacing: .1em;
+text-transform: uppercase;
+color: var(–muted);
+padding: 3px 6px 6px;
+border-bottom: 1px solid var(–border);
+text-align: left;
+}
+tbody tr { transition: background .08s; }
+tbody tr:hover { background: var(–raised); }
+tbody td {
+padding: 2px 3px;
+border-bottom: 1px solid #1c2128;
+vertical-align: middle;
+}
+.swatch-cell { width: 18px; text-align: center; }
+.swatch {
+display: inline-block;
+width: 8px;
+height: 8px;
+border-radius: 2px;
+vertical-align: middle;
+}
+td input {
+background: transparent;
+border: 1px solid transparent;
+color: var(–text);
+font-family: inherit;
+font-size: 12px;
+padding: 3px 5px;
+width: 100%;
+border-radius: 3px;
+outline: none;
+transition: border-color .1s, background .1s;
+}
+td input:hover { border-color: var(–border); }
+td input:focus { border-color: var(–accent); background: var(–raised); }
+td input.invalid { border-color: var(–err) !important; }
+.del-btn {
+background: none;
+border: none;
+color: var(–muted);
+cursor: pointer;
+font-size: 15px;
+line-height: 1;
+padding: 1px 6px;
+border-radius: 3px;
+transition: color .1s, background .1s;
+}
+.del-btn:hover { color: var(–err); background: #271b1b; }
+
+/* ── Tooltip ─────────────────────────────── */
+#tooltip {
+position: fixed;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 5px;
+padding: 8px 11px;
+font-size: 11px;
+pointer-events: none;
+z-index: 999;
+white-space: nowrap;
+display: none;
+box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+.tt-name { font-weight: 700; margin-bottom: 5px; }
+.tt-row { color: var(–muted); margin-top: 2px; }
+.tt-row b { color: var(–text); font-weight: 400; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(–border); border-radius: 3px; }
+</style>
+
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">◼ Memory Map</span>
+  <span class="header-stats" id="headerStats"></span>
+</div>
+
+<div class="main">
+
+  <div class="viz-panel">
+    <div class="panel-label">Layout</div>
+    <div class="bar-wrapper">
+      <div class="addr-col" id="addrCol"></div>
+      <div class="memory-bar" id="memBar"></div>
+    </div>
+  </div>
+
+  <div class="table-panel">
+    <div class="table-toolbar">
+      <span class="panel-label">Regions</span>
+      <button class="btn" onclick="addRow()">+ Add Region</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="swatch-cell"></th>
+          <th style="width:82px">Offset</th>
+          <th style="width:74px">Size</th>
+          <th>Name</th>
+          <th>Reference</th>
+          <th style="width:24px"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+// ── Palette ──────────────────────────────────────────────────────────
+const PALETTE = [
+  '#539bf5','#57ab5a','#daaa3f','#e5534b','#b083f0',
+  '#39c5cf','#f69d50','#6cb6ff','#8ddb8c','#cc6b2c'
+];
+
+// ── State ─────────────────────────────────────────────────────────────
+let rows = [
+  { offset:'0x0000', size:'0x0400', name:'Vector Table',  ref:'' },
+  { offset:'0x0400', size:'0x1000', name:'Bootloader',    ref:'' },
+  { offset:'0x1400', size:'0x4000', name:'FIP0',          ref:'' },
+  { offset:'0x5400', size:'0x4000', name:'FIP1',          ref:'' },
+  { offset:'0x9400', size:'0x2000', name:'Config',        ref:'' },
+];
+
+// ── Parsing ───────────────────────────────────────────────────────────
+function parseNum(s) {
+  if (!s || !s.trim()) return NaN;
+  s = s.trim();
+  if (/^0[xX][0-9a-fA-F]+$/.test(s)) return parseInt(s, 16);
+  if (/^[0-9]+[kK]$/.test(s))         return parseInt(s) * 1024;
+  if (/^[0-9]+[mM]$/.test(s))         return parseInt(s) * 1048576;
+  if (/^[0-9]+$/.test(s))             return parseInt(s, 10);
+  return NaN;
+}
+
+function fmtHex(n) {
+  if (isNaN(n)) return '???';
+  const h = n.toString(16).toUpperCase();
+  return '0x' + h.padStart(h.length <= 4 ? 4 : h.length % 2 === 0 ? h.length : h.length + 1, '0');
+}
+
+function fmtSize(n) {
+  if (n >= 1048576) return (n / 1048576).toFixed(n % 1048576 === 0 ? 0 : 1) + ' MB';
+  if (n >= 1024)    return (n / 1024).toFixed(n % 1024 === 0 ? 0 : 1) + ' KB';
+  return n + ' B';
+}
+
+// ── Table render ──────────────────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  rows.forEach((row, i) => {
+    const color = PALETTE[i % PALETTE.length];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="swatch-cell"><span class="swatch" style="background:${color}"></span></td>
+      <td><input data-i="${i}" data-f="offset" value="${row.offset}" placeholder="0x0000"></td>
+      <td><input data-i="${i}" data-f="size"   value="${row.size}"   placeholder="0x400"></td>
+      <td><input data-i="${i}" data-f="name"   value="${row.name}"   placeholder="Region name"></td>
+      <td><input data-i="${i}" data-f="ref"    value="${row.ref}"    placeholder="https://… or [[Note]]"></td>
+      <td><button class="del-btn" title="Delete" onclick="deleteRow(${i})">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const { i, f } = e.target.dataset;
+      rows[i][f] = e.target.value;
+      validateInput(e.target, i, f);
+      renderViz();
+    });
+  });
+
+  validateAll();
+}
+
+function validateInput(inp, i, f) {
+  if (f === 'offset' || f === 'size') {
+    const v = parseNum(inp.value);
+    inp.classList.toggle('invalid', isNaN(v) || (f === 'size' && v <= 0));
+  }
+}
+
+function validateAll() {
+  document.querySelectorAll('#tbody input').forEach(inp => {
+    validateInput(inp, inp.dataset.i, inp.dataset.f);
+  });
+}
+
+// ── Viz render ────────────────────────────────────────────────────────
+function renderViz() {
+  const bar    = document.getElementById('memBar');
+  const addrEl = document.getElementById('addrCol');
+  const stats  = document.getElementById('headerStats');
+
+  bar.innerHTML    = '';
+  addrEl.innerHTML = '';
+
+  const valid = rows
+    .map((r, i) => ({
+      offset: parseNum(r.offset),
+      size:   parseNum(r.size),
+      name:   r.name,
+      ref:    r.ref,
+      color:  PALETTE[i % PALETTE.length],
+    }))
+    .filter(r => !isNaN(r.offset) && !isNaN(r.size) && r.size > 0);
+
+  if (!valid.length) { stats.innerHTML = ''; return; }
+
+  valid.sort((a, b) => a.offset - b.offset);
+
+  const addrMin  = valid[0].offset;
+  const addrMax  = Math.max(...valid.map(r => r.offset + r.size));
+  const addrSpan = addrMax - addrMin;
+
+  if (addrSpan <= 0) return;
+
+  // Stats
+  const totalUsed = valid.reduce((a, r) => a + r.size, 0);
+  stats.innerHTML = `<span>${valid.length}</span> regions · <span>${fmtHex(addrMin)}</span> → <span>${fmtHex(addrMax)}</span> · <span>${fmtSize(totalUsed)}</span> used`;
+
+  // Segments
+  valid.forEach(r => {
+    const top    = ((r.offset - addrMin) / addrSpan) * 100;
+    const height = (r.size / addrSpan) * 100;
+
+    const seg = document.createElement('div');
+    seg.className = 'segment' + (r.ref && r.ref.startsWith('http') ? ' clickable' : '');
+    seg.style.top        = top + '%';
+    seg.style.height     = Math.max(height, 0.4) + '%';
+    seg.style.background = r.color + '28';
+    seg.style.borderTop  = `1px solid ${r.color}`;
+
+    if (height > 2.5) {
+      const lbl = document.createElement('div');
+      lbl.className   = 'seg-label';
+      lbl.textContent = r.name || '—';
+      lbl.style.color = r.color;
+      seg.appendChild(lbl);
+    }
+
+    seg.addEventListener('mouseenter', e => showTip(e, r));
+    seg.addEventListener('mousemove',  moveTip);
+    seg.addEventListener('mouseleave', hideTip);
+    if (r.ref && r.ref.startsWith('http')) {
+      seg.addEventListener('click', () => window.open(r.ref, '_blank'));
+    }
+
+    bar.appendChild(seg);
+  });
+
+  // Address ticks — avoid crowding (min 6% gap)
+  const tickAddrs = [...new Set([addrMin, ...valid.map(r => r.offset), addrMax])].sort((a,b)=>a-b);
+  let lastPct = -99;
+  tickAddrs.forEach(addr => {
+    const pct = ((addr - addrMin) / addrSpan) * 100;
+    if (pct - lastPct < 6 && addr !== addrMax) return;
+    lastPct = pct;
+
+    const tick = document.createElement('div');
+    tick.className   = 'addr-tick';
+    tick.style.top   = pct + '%';
+    tick.textContent = fmtHex(addr);
+    addrEl.appendChild(tick);
+  });
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────────
+function showTip(e, r) {
+  const tt = document.getElementById('tooltip');
+  tt.innerHTML = `
+    <div class="tt-name" style="color:${r.color}">${r.name || '(unnamed)'}</div>
+    <div class="tt-row">Start &nbsp;<b>${fmtHex(r.offset)}</b></div>
+    <div class="tt-row">Size &nbsp;&nbsp;<b>${fmtHex(r.size)} &nbsp;(${fmtSize(r.size)})</b></div>
+    <div class="tt-row">End &nbsp;&nbsp;&nbsp;<b>${fmtHex(r.offset + r.size)}</b></div>
+    ${r.ref ? `<div class="tt-row" style="margin-top:5px;color:${r.color}">${r.ref}</div>` : ''}
+  `;
+  tt.style.display = 'block';
+  moveTip(e);
+}
+function moveTip(e) {
+  const tt = document.getElementById('tooltip');
+  const x = e.clientX + 14, y = e.clientY - 10;
+  tt.style.left = (x + tt.offsetWidth > window.innerWidth ? x - tt.offsetWidth - 20 : x) + 'px';
+  tt.style.top  = y + 'px';
+}
+function hideTip() { document.getElementById('tooltip').style.display = 'none'; }
+
+// ── Row ops ───────────────────────────────────────────────────────────
+function addRow() {
+  rows.push({ offset:'', size:'', name:'', ref:'' });
+  renderTable();
+  renderViz();
+  // focus the new offset cell
+  const inputs = document.querySelectorAll('#tbody tr:last-child input');
+  if (inputs[0]) inputs[0].focus();
+}
+
+function deleteRow(i) {
+  rows.splice(i, 1);
+  renderTable();
+  renderViz();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+renderTable();
+renderViz();
+</script>
+
+</body>
+</html>
