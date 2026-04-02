@@ -168,6 +168,9 @@ border-radius: 4px;
 transition: border-color .12s, color .12s;
 }
 .btn:hover { border-color: var(–accent); color: var(–accent); }
+.btn-screenshot { border-color: #57ab5a44; }
+.btn-screenshot:hover { border-color: #57ab5a; color: #57ab5a; }
+.btn.capturing { opacity: .5; pointer-events: none; }
 
 table {
 width: 100%;
@@ -272,7 +275,10 @@ box-shadow: 0 4px 16px rgba(0,0,0,.5);
   <div class="table-panel">
     <div class="table-toolbar">
       <span class="panel-label">Regions</span>
-      <button class="btn" onclick="addRow()">+ Add Region</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-screenshot" id="screenshotBtn" onclick="takeScreenshot()">⬇ Export PNG</button>
+        <button class="btn" onclick="addRow()">+ Add Region</button>
+      </div>
     </div>
     <table>
       <thead>
