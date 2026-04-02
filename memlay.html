@@ -17,6 +17,7 @@
     --gap-bg:  #161b22;
     --err:     #e5534b;
     --warn:    #daaa3f;
+    --ok:      #57ab5a;
   }
   body.light {
     --bg:      #f6f8fa;
@@ -29,123 +30,144 @@
     --gap-bg:  #eaeef2;
     --err:     #cf222e;
     --warn:    #9a6700;
+    --ok:      #1a7f37;
   }
 
-- { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-background: var(–bg);
-color: var(–text);
-font-family: ‘Cascadia Code’,‘Fira Code’,‘JetBrains Mono’,‘Consolas’,ui-monospace,monospace;
-font-size: 12px;
-height: 100vh;
-overflow: hidden;
-display: flex;
-flex-direction: column;
-}
+- { box-sizing:border-box; margin:0; padding:0; }
+  body {
+  background:var(–bg); color:var(–text);
+  font-family:‘Cascadia Code’,‘Fira Code’,‘JetBrains Mono’,‘Consolas’,ui-monospace,monospace;
+  font-size:12px; height:100vh; overflow:hidden;
+  display:flex; flex-direction:column;
+  }
 
 /* ── Header ─────────────────────────────── */
 .header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 7px 14px;
-border-bottom: 1px solid var(–border);
-flex-shrink: 0;
-background: var(–surface);
+display:flex; align-items:center; justify-content:space-between;
+padding:7px 14px; border-bottom:1px solid var(–border);
+flex-shrink:0; background:var(–surface);
 }
 .header-title { font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(–muted); }
 .header-right  { display:flex; align-items:center; gap:10px; }
 .header-stats  { font-size:10px; color:var(–muted); }
 .header-stats span { color:var(–text); }
-.header-stats .warn-badge {
-color: var(–warn);
-font-weight: 700;
-margin-left: 6px;
-animation: pulse .8s ease-in-out infinite alternate;
-}
-@keyframes pulse { from { opacity:.6 } to { opacity:1 } }
+.warn-badge { color:var(–warn)!important; font-weight:700; margin-left:6px; animation:pulse .8s ease-in-out infinite alternate; }
+@keyframes pulse { from{opacity:.6} to{opacity:1} }
 
 /* ── Main ───────────────────────────────── */
 .main { display:flex; flex:1; min-height:0; }
 
 /* ── Viz panel ──────────────────────────── */
 .viz-panel {
-width: 172px; flex-shrink:0;
-border-right: 1px solid var(–border);
-padding: 14px 6px 14px 10px;
-display: flex; flex-direction:column; gap:8px; overflow:hidden;
+width:190px; flex-shrink:0; border-right:1px solid var(–border);
+padding:10px 6px 10px 10px;
+display:flex; flex-direction:column; gap:8px; overflow:hidden;
 }
-.panel-label { font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(–muted); text-align:center; }
+.viz-controls { display:flex; align-items:center; justify-content:space-between; }
+.panel-label  { font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(–muted); }
+
+/* ruler toggle */
+.ruler-btn {
+background:none; border:1px solid var(–border); color:var(–muted);
+font-size:9px; letter-spacing:.06em; text-transform:uppercase;
+padding:2px 6px; border-radius:3px; cursor:pointer;
+transition:border-color .12s, color .12s; font-family:inherit;
+}
+.ruler-btn:hover   { border-color:var(–accent); color:var(–accent); }
+.ruler-btn.active  { border-color:var(–accent); color:var(–accent); background:rgba(83,155,245,.08); }
+
 .bar-wrapper { flex:1; display:flex; gap:6px; min-height:0; }
 .addr-col    { width:52px; flex-shrink:0; position:relative; }
 .addr-tick {
-position:absolute; right:0;
-font-size:9px; color:var(–muted);
+position:absolute; right:0; font-size:9px; color:var(–muted);
 transform:translateY(-50%); text-align:right; white-space:nowrap;
 }
-.addr-tick::after {
-content:’’; position:absolute; right:-7px; top:50%;
-width:5px; height:1px; background:var(–border);
-}
-.memory-bar {
-flex:1; position:relative;
-background:var(–gap-bg); border:1px solid var(–border);
-border-radius:2px; overflow:hidden; cursor:default;
-}
+.addr-tick::after { content:’’; position:absolute; right:-7px; top:50%; width:5px; height:1px; background:var(–border); }
 
-/* Segments */
+.memory-bar {
+flex:1; position:relative; background:var(–gap-bg);
+border:1px solid var(–border); border-radius:2px; overflow:hidden; cursor:default;
+}
+/* ruler mode: scrollable stacked list */
+.memory-bar.ruler { overflow-y:auto; overflow-x:hidden; }
+.memory-bar.ruler .segment { position:relative; top:auto!important; height:auto!important; min-height:26px; flex-shrink:0; }
+.memory-bar.ruler .gap-segment { position:relative; top:auto!important; height:auto!important; min-height:14px; flex-shrink:0; }
+.memory-bar.ruler { display:flex; flex-direction:column; }
+
 .segment {
 position:absolute; left:0; right:0;
 display:flex; align-items:center; justify-content:center;
 overflow:hidden; transition:filter .12s;
-border-bottom:1px solid rgba(0,0,0,.25);
+border-bottom:1px solid rgba(0,0,0,.2);
 }
 .segment:hover { filter:brightness(1.2); }
 .segment.clickable { cursor:pointer; }
 .segment.overlap {
-background-image: repeating-linear-gradient(
--45deg,
-transparent, transparent 3px,
-rgba(229,83,75,.18) 3px, rgba(229,83,75,.18) 6px
-) !important;
-border-top-color: var(–err) !important;
+background-image:repeating-linear-gradient(-45deg,transparent,transparent 3px,rgba(229,83,75,.18) 3px,rgba(229,83,75,.18) 6px)!important;
+border-top-color:var(–err)!important;
 }
-
-/* Gap regions */
 .gap-segment {
 position:absolute; left:0; right:0;
-background-image: repeating-linear-gradient(
-45deg,
-transparent, transparent 5px,
-rgba(118,131,144,.07) 5px, rgba(118,131,144,.07) 10px
-);
-border-top: 1px dashed var(–border);
-pointer-events: auto;
-cursor: default;
+background-image:repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(118,131,144,.07) 5px,rgba(118,131,144,.07) 10px);
+border-top:1px dashed var(–border); pointer-events:auto; cursor:default;
 }
-.gap-segment:hover { background-color: rgba(118,131,144,.06); }
-
+.gap-segment:hover { background-color:rgba(118,131,144,.06); }
 .seg-label {
-font-size:9px; font-weight:700;
-white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-padding:0 3px; pointer-events:none;
-letter-spacing:.04em; text-shadow:0 1px 3px rgba(0,0,0,.55);
+font-size:9px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+padding:0 4px; pointer-events:none; letter-spacing:.04em; text-shadow:0 1px 3px rgba(0,0,0,.55);
 }
+.seg-sublabel {
+font-size:8px; color:inherit; opacity:.7; pointer-events:none;
+white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+padding:0 4px; letter-spacing:.02em;
+}
+.memory-bar.ruler .segment { flex-direction:column; gap:1px; justify-content:center; }
+
+/* ── Budget bar ─────────────────────────── */
+.budget-section { flex-shrink:0; }
+.budget-row {
+display:flex; align-items:center; gap:5px;
+margin-bottom:5px; font-size:9px; color:var(–muted);
+}
+.budget-row label { white-space:nowrap; }
+.budget-input {
+flex:1; min-width:0; background:var(–raised); border:1px solid var(–border);
+color:var(–text); font-family:inherit; font-size:9px;
+padding:2px 4px; border-radius:3px; outline:none;
+transition:border-color .1s;
+}
+.budget-input:focus { border-color:var(–accent); }
+.budget-input.invalid { border-color:var(–err); }
+.budget-bar-track {
+height:6px; background:var(–raised); border:1px solid var(–border);
+border-radius:3px; overflow:hidden; position:relative;
+}
+.budget-bar-fill {
+height:100%; border-radius:3px; transition:width .25s, background-color .25s;
+background: var(–ok);
+}
+.budget-pct {
+font-size:9px; color:var(–muted); text-align:right; margin-top:2px; letter-spacing:.04em;
+}
+.budget-pct span { color:var(–text); }
 
 /* ── Table panel ────────────────────────── */
 .table-panel { flex:1; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
 .table-toolbar { display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+.toolbar-btns  { display:flex; gap:5px; flex-wrap:wrap; }
 
 .btn {
 background:var(–raised); border:1px solid var(–border); color:var(–text);
-padding:4px 11px; font-size:11px; font-family:inherit;
+padding:4px 10px; font-size:11px; font-family:inherit;
 cursor:pointer; border-radius:4px; transition:border-color .12s, color .12s;
 }
-.btn:hover { border-color:var(–accent); color:var(–accent); }
-.btn-screenshot { border-color:#57ab5a44; }
-.btn-screenshot:hover { border-color:#57ab5a; color:#57ab5a; }
-.btn.capturing { opacity:.5; pointer-events:none; }
+.btn:hover        { border-color:var(–accent); color:var(–accent); }
+.btn-green        { border-color:#57ab5a44; }
+.btn-green:hover  { border-color:#57ab5a; color:#57ab5a; }
+.btn-purple       { border-color:#b083f044; }
+.btn-purple:hover { border-color:#b083f0; color:#b083f0; }
+.btn.capturing    { opacity:.5; pointer-events:none; }
+
 .theme-toggle {
 background:none; border:1px solid var(–border); color:var(–muted);
 font-size:13px; line-height:1; padding:2px 7px; border-radius:4px;
@@ -156,27 +178,22 @@ cursor:pointer; transition:border-color .12s, color .12s; font-family:inherit;
 table { width:100%; border-collapse:collapse; flex-shrink:0; }
 thead th {
 font-size:9px; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
-color:var(–muted); padding:3px 6px 6px;
-border-bottom:1px solid var(–border); text-align:left;
+color:var(–muted); padding:3px 6px 6px; border-bottom:1px solid var(–border); text-align:left;
 }
 tbody tr { transition:background .08s; }
 tbody tr:hover { background:var(–raised); }
-tbody tr.row-overlap { background: rgba(229,83,75,.07); }
-tbody tr.row-overlap:hover { background: rgba(229,83,75,.12); }
+tbody tr.row-overlap { background:rgba(229,83,75,.07); }
+tbody tr.row-overlap:hover { background:rgba(229,83,75,.12); }
 tbody td { padding:2px 3px; border-bottom:1px solid var(–raised); vertical-align:middle; }
 
-/* warn icon cell */
-.warn-cell { width:20px; text-align:center; font-size:11px; }
-.warn-icon { color:var(–err); cursor:default; }
-
-/* Color picker */
+.warn-cell  { width:20px; text-align:center; font-size:11px; }
+.warn-icon  { color:var(–err); }
 .color-cell { width:28px; text-align:center; }
 .color-pick {
 -webkit-appearance:none; appearance:none;
-width:20px; height:20px;
-border:1px solid var(–border); border-radius:3px;
-padding:0; cursor:pointer; background:none; vertical-align:middle;
-transition:border-color .1s;
+width:20px; height:20px; border:1px solid var(–border);
+border-radius:3px; padding:0; cursor:pointer; background:none;
+vertical-align:middle; transition:border-color .1s;
 }
 .color-pick:hover { border-color:var(–accent); }
 .color-pick::-webkit-color-swatch-wrapper { padding:2px; }
@@ -190,7 +207,7 @@ transition:border-color .1s, background .1s;
 }
 td input[type=“text”]:hover, td input:not([type]):hover { border-color:var(–border); }
 td input[type=“text”]:focus, td input:not([type]):focus { border-color:var(–accent); background:var(–raised); }
-td input.invalid { border-color:var(–err) !important; }
+td input.invalid { border-color:var(–err)!important; }
 
 .del-btn {
 background:none; border:none; color:var(–muted);
@@ -199,24 +216,42 @@ padding:1px 6px; border-radius:3px; transition:color .1s, background .1s;
 }
 .del-btn:hover { color:var(–err); background:rgba(229,83,75,.1); }
 
-/* ── Overlap warnings panel ─────────────── */
+/* ── Overlap warnings ───────────────────── */
 .warnings {
-flex-shrink:0;
-border: 1px solid rgba(229,83,75,.4);
-border-radius:5px;
-background: rgba(229,83,75,.06);
-padding: 8px 12px;
-display:none;
-flex-direction:column;
-gap:4px;
+flex-shrink:0; border:1px solid rgba(229,83,75,.4); border-radius:5px;
+background:rgba(229,83,75,.06); padding:8px 12px;
+display:none; flex-direction:column; gap:4px;
 }
 .warnings.visible { display:flex; }
-.warnings-title {
-font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-color:var(–err); margin-bottom:2px;
-}
+.warnings-title { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(–err); margin-bottom:2px; }
 .warning-row { font-size:11px; color:var(–muted); }
 .warning-row b { color:var(–err); font-weight:400; }
+
+/* ── CSV modal ──────────────────────────── */
+.modal-overlay {
+position:fixed; inset:0; background:rgba(0,0,0,.65);
+display:none; align-items:center; justify-content:center; z-index:200;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+background:var(–surface); border:1px solid var(–border);
+border-radius:8px; padding:18px; width:480px; max-width:95vw;
+display:flex; flex-direction:column; gap:10px;
+box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.modal-title { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(–muted); }
+.modal-hint  { font-size:10px; color:var(–muted); line-height:1.6; }
+.modal-hint code { color:var(–accent); background:var(–raised); padding:1px 4px; border-radius:2px; }
+.csv-textarea {
+background:var(–raised); border:1px solid var(–border); color:var(–text);
+font-family:inherit; font-size:11px; padding:8px; border-radius:4px;
+resize:vertical; min-height:140px; outline:none;
+transition:border-color .1s;
+}
+.csv-textarea:focus { border-color:var(–accent); }
+.modal-err { font-size:10px; color:var(–err); display:none; }
+.modal-err.visible { display:block; }
+.modal-btns { display:flex; gap:6px; justify-content:flex-end; }
 
 /* ── Tooltip ────────────────────────────── */
 #tooltip {
@@ -231,7 +266,7 @@ display:none; box-shadow:0 4px 16px rgba(0,0,0,.5);
 .tt-warn { color:var(–err); margin-top:5px; font-size:10px; }
 .tt-gap  { color:var(–muted); font-style:italic; }
 
-::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar { width:5px; height:5px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:var(–border); border-radius:3px; }
 </style>
@@ -249,20 +284,40 @@ display:none; box-shadow:0 4px 16px rgba(0,0,0,.5);
 
 <div class="main">
 
+  <!-- ── Viz panel ── -->
+
   <div class="viz-panel">
-    <div class="panel-label">Layout</div>
+    <div class="viz-controls">
+      <span class="panel-label">Layout</span>
+      <button class="ruler-btn" id="rulerBtn" onclick="toggleRuler()" title="Equal-height rows">Ruler</button>
+    </div>
     <div class="bar-wrapper">
       <div class="addr-col" id="addrCol"></div>
       <div class="memory-bar" id="memBar"></div>
     </div>
+    <!-- Budget bar -->
+    <div class="budget-section">
+      <div class="budget-row">
+        <label for="budgetInput">Budget</label>
+        <input id="budgetInput" class="budget-input" placeholder="e.g. 1M, 0x100000" oninput="onBudgetInput()">
+      </div>
+      <div class="budget-bar-track" id="budgetTrack" style="display:none">
+        <div class="budget-bar-fill" id="budgetFill" style="width:0%"></div>
+      </div>
+      <div class="budget-pct" id="budgetPct" style="display:none"></div>
+    </div>
   </div>
+
+  <!-- ── Table panel ── -->
 
   <div class="table-panel">
     <div class="table-toolbar">
       <span class="panel-label">Regions</span>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-screenshot" id="screenshotBtn" onclick="takeScreenshot()">&#11015; Export PNG</button>
-        <button class="btn" onclick="addRow()">+ Add Region</button>
+      <div class="toolbar-btns">
+        <button class="btn btn-purple" onclick="openImport()">&#8645; Import CSV</button>
+        <button class="btn btn-purple" onclick="exportCSV()">&#8595; Export CSV</button>
+        <button class="btn btn-green" id="screenshotBtn" onclick="takeScreenshot()">&#11015; Export PNG</button>
+        <button class="btn" onclick="addRow()">+ Add</button>
       </div>
     </div>
 
@@ -290,41 +345,54 @@ display:none; box-shadow:0 4px 16px rgba(0,0,0,.5);
 
   </div>
 
+</div><!-- /.main -->
+
+<!-- ── CSV Import modal ── -->
+
+<div class="modal-overlay" id="csvModal">
+  <div class="modal">
+    <div class="modal-title">Import CSV</div>
+    <div class="modal-hint">
+      Columns: <code>Offset</code>, <code>Size</code>, <code>Name</code>, <code>Reference</code> (optional), <code>Color</code> (optional hex, e.g. <code>#539bf5</code>)<br>
+      Accepts hex (<code>0x400</code>), decimal, or suffixed (<code>4K</code>, <code>2M</code>) values.
+    </div>
+    <textarea class="csv-textarea" id="csvInput" placeholder="0x0000, 0x0400, Vector Table
+0x0400, 0x1000, Bootloader, https://docs.example.com, #57ab5a"></textarea>
+    <div class="modal-err" id="csvErr"></div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeImport()">Cancel</button>
+      <button class="btn btn-purple" onclick="doImport()">Import</button>
+    </div>
+  </div>
 </div>
 
 <div id="tooltip"></div>
 
 <script>
-// ── Palette ───────────────────────────────────────────────────────────
-const PALETTE = [
-  '#539bf5','#57ab5a','#daaa3f','#e5534b','#b083f0',
-  '#39c5cf','#f69d50','#6cb6ff','#8ddb8c','#cc6b2c'
-];
+// ── Palette & defaults ────────────────────────────────────────────────
+const PALETTE = ['#539bf5','#57ab5a','#daaa3f','#e5534b','#b083f0','#39c5cf','#f69d50','#6cb6ff','#8ddb8c','#cc6b2c'];
 
-// ── Default rows (used only if no saved state) ────────────────────────
 const DEFAULT_ROWS = [
-  { offset:'0x0000', size:'0x0400', name:'Vector Table', ref:'', color:'#539bf5' },
-  { offset:'0x0400', size:'0x1000', name:'Bootloader',   ref:'', color:'#57ab5a' },
-  { offset:'0x1400', size:'0x4000', name:'FIP0',         ref:'', color:'#daaa3f' },
-  { offset:'0x5400', size:'0x4000', name:'FIP1',         ref:'', color:'#e5534b' },
-  { offset:'0x9400', size:'0x2000', name:'Config',       ref:'', color:'#b083f0' },
+  {offset:'0x0000',size:'0x0400',name:'Vector Table',ref:'',color:'#539bf5'},
+  {offset:'0x0400',size:'0x1000',name:'Bootloader',  ref:'',color:'#57ab5a'},
+  {offset:'0x1400',size:'0x4000',name:'FIP0',        ref:'',color:'#daaa3f'},
+  {offset:'0x5400',size:'0x4000',name:'FIP1',        ref:'',color:'#e5534b'},
+  {offset:'0x9400',size:'0x2000',name:'Config',      ref:'',color:'#b083f0'},
 ];
 
 // ── State ─────────────────────────────────────────────────────────────
-let rows = loadState();
+let rows      = loadState();
+let rulerMode = false;
+let budgetVal = NaN; // parsed budget in bytes
 
 // ── Persistence ───────────────────────────────────────────────────────
 function saveState() {
   try { localStorage.setItem('memmap-rows', JSON.stringify(rows)); } catch(e) {}
 }
-
 function loadState() {
   try {
-    const saved = localStorage.getItem('memmap-rows');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length) return parsed;
-    }
+    const s = localStorage.getItem('memmap-rows');
+    if (s) { const p = JSON.parse(s); if (Array.isArray(p) && p.length) return p; }
   } catch(e) {}
   return DEFAULT_ROWS.map(r => Object.assign({}, r));
 }
@@ -339,108 +407,86 @@ function parseNum(s) {
   if (/^[0-9]+$/.test(s))             return parseInt(s, 10);
   return NaN;
 }
-
 function fmtHex(n) {
   if (isNaN(n)) return '???';
   const h = n.toString(16).toUpperCase();
-  return '0x' + h.padStart(h.length <= 4 ? 4 : h.length % 2 === 0 ? h.length : h.length+1, '0');
+  return '0x' + h.padStart(h.length<=4?4:h.length%2===0?h.length:h.length+1,'0');
 }
-
 function fmtSize(n) {
-  if (n >= 1048576) return (n/1048576).toFixed(n%1048576===0?0:1) + ' MB';
-  if (n >= 1024)    return (n/1024).toFixed(n%1024===0?0:1) + ' KB';
-  return n + ' B';
+  if (n >= 1048576) return (n/1048576).toFixed(n%1048576===0?0:1)+' MB';
+  if (n >= 1024)    return (n/1024).toFixed(n%1024===0?0:1)+' KB';
+  return n+' B';
 }
 
-// ── Overlap detection ─────────────────────────────────────────────────
+// ── Analysis helpers ──────────────────────────────────────────────────
 function findOverlaps(valid) {
-  // valid is already sorted by offset
-  const overlapping = new Set(); // indices into valid[]
-  const pairs = [];              // human-readable descriptions
-
-  for (let i = 0; i < valid.length; i++) {
-    for (let j = i + 1; j < valid.length; j++) {
-      const a = valid[i], b = valid[j];
-      const overlapStart = Math.max(a.offset, b.offset);
-      const overlapEnd   = Math.min(a.offset + a.size, b.offset + b.size);
-      if (overlapEnd > overlapStart) {
-        overlapping.add(i);
-        overlapping.add(j);
-        pairs.push({
-          nameA: a.name || '(unnamed)', nameB: b.name || '(unnamed)',
-          start: overlapStart, size: overlapEnd - overlapStart,
-          colorA: a.color,    colorB: b.color,
-        });
-      }
+  const overlapping = new Set(), pairs = [];
+  for (let i=0;i<valid.length;i++) for (let j=i+1;j<valid.length;j++) {
+    const a=valid[i], b=valid[j];
+    const os=Math.max(a.offset,b.offset), oe=Math.min(a.offset+a.size,b.offset+b.size);
+    if (oe>os) {
+      overlapping.add(i); overlapping.add(j);
+      pairs.push({nameA:a.name||'(unnamed)',nameB:b.name||'(unnamed)',start:os,size:oe-os,colorA:a.color,colorB:b.color});
     }
   }
-  return { overlapping, pairs };
+  return {overlapping, pairs};
 }
-
-// ── Gap detection ─────────────────────────────────────────────────────
 function findGaps(valid) {
-  const gaps = [];
-  for (let i = 0; i < valid.length - 1; i++) {
-    const end   = valid[i].offset + valid[i].size;
-    const start = valid[i+1].offset;
-    if (start > end) gaps.push({ offset: end, size: start - end });
+  const gaps=[];
+  for (let i=0;i<valid.length-1;i++) {
+    const end=valid[i].offset+valid[i].size, start=valid[i+1].offset;
+    if (start>end) gaps.push({offset:end,size:start-end});
   }
   return gaps;
 }
 
-// ── Table render ──────────────────────────────────────────────────────
-function renderTable(overlapIdxSet) {
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
-
-  // build valid[] in same order as renderViz for index matching
-  const valid = rows
-    .map((r, origIdx) => ({ offset:parseNum(r.offset), size:parseNum(r.size), name:r.name, ref:r.ref, color:r.color, origIdx }))
-    .filter(r => !isNaN(r.offset) && !isNaN(r.size) && r.size > 0);
-  valid.sort((a,b) => a.offset - b.offset);
-  const overlapOrigIdxs = new Set([...overlapIdxSet].map(i => valid[i]?.origIdx));
-
-  rows.forEach((row, i) => {
-    const isOverlap = overlapOrigIdxs.has(i);
-    const tr = document.createElement('tr');
-    if (isOverlap) tr.classList.add('row-overlap');
-    tr.innerHTML =
-      '<td class="warn-cell">' + (isOverlap ? '<span class="warn-icon" title="Overlaps another region">!</span>' : '') + '</td>' +
-      '<td class="color-cell"><input type="color" class="color-pick" data-i="' + i + '" value="' + row.color + '" title="Pick color"></td>' +
-      '<td><input data-i="' + i + '" data-f="offset" value="' + row.offset + '" placeholder="0x0000"></td>' +
-      '<td><input data-i="' + i + '" data-f="size"   value="' + row.size   + '" placeholder="0x400"></td>' +
-      '<td><input data-i="' + i + '" data-f="name"   value="' + row.name   + '" placeholder="Region name"></td>' +
-      '<td><input data-i="' + i + '" data-f="ref"    value="' + row.ref    + '" placeholder="https://..."></td>' +
-      '<td><button class="del-btn" title="Delete" onclick="deleteRow(' + i + ')">&#215;</button></td>';
-    tbody.appendChild(tr);
-  });
-
-  tbody.querySelectorAll('.color-pick').forEach(p => {
-    p.addEventListener('input', e => {
-      rows[+e.target.dataset.i].color = e.target.value;
-      saveState(); render();
-    });
-  });
-  tbody.querySelectorAll('input[data-f]').forEach(inp => {
-    inp.addEventListener('input', e => {
-      const i = +e.target.dataset.i, f = e.target.dataset.f;
-      rows[i][f] = e.target.value;
-      validateInput(e.target, f);
-      saveState(); render();
-    });
-  });
-
-  validateAll();
+// ── Budget ────────────────────────────────────────────────────────────
+function onBudgetInput() {
+  const inp = document.getElementById('budgetInput');
+  budgetVal = parseNum(inp.value);
+  const valid = !inp.value.trim() || !isNaN(budgetVal);
+  inp.classList.toggle('invalid', !valid);
+  try { localStorage.setItem('memmap-budget', inp.value); } catch(e) {}
+  updateBudgetBar();
 }
+function updateBudgetBar(totalUsed) {
+  const track = document.getElementById('budgetTrack');
+  const fill  = document.getElementById('budgetFill');
+  const pct   = document.getElementById('budgetPct');
 
-function validateInput(inp, f) {
-  if (f === 'offset' || f === 'size') {
-    const v = parseNum(inp.value);
-    inp.classList.toggle('invalid', isNaN(v) || (f === 'size' && v <= 0));
+  if (isNaN(budgetVal) || budgetVal <= 0) {
+    track.style.display = 'none';
+    pct.style.display   = 'none';
+    return;
   }
+  // calculate totalUsed from rows if not provided
+  if (totalUsed === undefined) {
+    const valid = rows
+      .map(r => ({offset:parseNum(r.offset),size:parseNum(r.size)}))
+      .filter(r => !isNaN(r.offset) && !isNaN(r.size) && r.size > 0);
+    totalUsed = valid.reduce((a,r) => a+r.size, 0);
+  }
+
+  const ratio    = Math.min(totalUsed / budgetVal, 1);
+  const pctNum   = (totalUsed / budgetVal * 100);
+  const over     = totalUsed > budgetVal;
+  const color    = over ? 'var(--err)' : pctNum > 85 ? 'var(--warn)' : 'var(--ok)';
+
+  track.style.display = 'block';
+  pct.style.display   = 'block';
+  fill.style.width    = (ratio * 100) + '%';
+  fill.style.background = color;
+  pct.innerHTML = '<span style="color:' + color + '">' + pctNum.toFixed(1) + '%</span>'
+    + ' of ' + fmtSize(budgetVal)
+    + (over ? ' <span style="color:var(--err)">&#9888; OVER</span>' : '');
 }
-function validateAll() {
-  document.querySelectorAll('#tbody input[data-f]').forEach(inp => validateInput(inp, inp.dataset.f));
+
+// ── Ruler mode ────────────────────────────────────────────────────────
+function toggleRuler() {
+  rulerMode = !rulerMode;
+  document.getElementById('rulerBtn').classList.toggle('active', rulerMode);
+  document.getElementById('addrCol').style.display = rulerMode ? 'none' : '';
+  render();
 }
 
 // ── Viz render ────────────────────────────────────────────────────────
@@ -451,223 +497,349 @@ function renderViz() {
   const wPanel = document.getElementById('warningsPanel');
   const wList  = document.getElementById('warningsList');
   bar.innerHTML = ''; addrEl.innerHTML = '';
+  bar.classList.toggle('ruler', rulerMode);
 
   const valid = rows
-    .map(r => ({ offset:parseNum(r.offset), size:parseNum(r.size), name:r.name, ref:r.ref, color:r.color }))
+    .map(r => ({offset:parseNum(r.offset),size:parseNum(r.size),name:r.name,ref:r.ref,color:r.color}))
     .filter(r => !isNaN(r.offset) && !isNaN(r.size) && r.size > 0);
 
-  if (!valid.length) { stats.innerHTML = ''; wPanel.classList.remove('visible'); return valid; }
+  if (!valid.length) { stats.innerHTML=''; wPanel.classList.remove('visible'); updateBudgetBar(0); return {valid:[], overlapping:new Set()}; }
   valid.sort((a,b) => a.offset - b.offset);
 
   const addrMin  = valid[0].offset;
-  const addrMax  = Math.max(...valid.map(r => r.offset + r.size));
+  const addrMax  = Math.max(...valid.map(r => r.offset+r.size));
   const addrSpan = addrMax - addrMin;
-  if (addrSpan <= 0) return valid;
+  if (addrSpan <= 0) return {valid, overlapping:new Set()};
 
-  // ── Overlaps ──
-  const { overlapping, pairs } = findOverlaps(valid);
+  const {overlapping, pairs} = findOverlaps(valid);
+  const gaps      = findGaps(valid);
+  const totalGap  = gaps.reduce((a,g) => a+g.size, 0);
+  const totalUsed = valid.reduce((a,r) => a+r.size, 0);
 
-  // ── Gaps ──
-  const gaps = findGaps(valid);
-  const totalGap = gaps.reduce((a,g) => a + g.size, 0);
+  // Header stats
+  let sh = '<span>'+valid.length+'</span> regions &middot; <span>'+fmtHex(addrMin)+'</span> &rarr; <span>'+fmtHex(addrMax)+'</span> &middot; <span>'+fmtSize(totalUsed)+'</span> mapped';
+  if (totalGap>0) sh += ' &middot; <span>'+fmtSize(totalGap)+'</span> unallocated';
+  if (pairs.length) sh += '<span class="warn-badge">&#9888; '+pairs.length+' overlap'+(pairs.length>1?'s':'')+'</span>';
+  stats.innerHTML = sh;
 
-  // ── Stats bar ──
-  const totalUsed = valid.reduce((a,r) => a + r.size, 0);
-  let statsHtml = '<span>' + valid.length + '</span> regions &middot; '
-    + '<span>' + fmtHex(addrMin) + '</span> &rarr; <span>' + fmtHex(addrMax) + '</span> &middot; '
-    + '<span>' + fmtSize(totalUsed) + '</span> mapped';
-  if (totalGap > 0)
-    statsHtml += ' &middot; <span>' + fmtSize(totalGap) + '</span> unallocated';
-  if (pairs.length)
-    statsHtml += '<span class="warn-badge">&#9888; ' + pairs.length + ' overlap' + (pairs.length > 1 ? 's' : '') + '</span>';
-  stats.innerHTML = statsHtml;
-
-  // ── Warnings panel ──
+  // Overlaps panel
   if (pairs.length) {
     wPanel.classList.add('visible');
     wList.innerHTML = pairs.map(p =>
-      '<div class="warning-row">'
-      + '<b style="color:' + p.colorA + '">' + p.nameA + '</b>'
-      + ' &harr; '
-      + '<b style="color:' + p.colorB + '">' + p.nameB + '</b>'
-      + ' &nbsp;&#8203;overlaps <b>' + fmtSize(p.size) + '</b> at <b>' + fmtHex(p.start) + '</b>'
-      + '</div>'
+      '<div class="warning-row"><b style="color:'+p.colorA+'">'+p.nameA+'</b> &harr; <b style="color:'+p.colorB+'">'+p.nameB+'</b>'
+      +' overlaps <b>'+fmtSize(p.size)+'</b> at <b>'+fmtHex(p.start)+'</b></div>'
     ).join('');
+  } else { wPanel.classList.remove('visible'); }
+
+  // Budget bar
+  updateBudgetBar(totalUsed);
+
+  // ── PROPORTIONAL MODE ──
+  if (!rulerMode) {
+    // Gaps
+    gaps.forEach(g => {
+      const top = ((g.offset-addrMin)/addrSpan)*100;
+      const h   = (g.size/addrSpan)*100;
+      const el  = document.createElement('div');
+      el.className  = 'gap-segment';
+      el.style.top  = top+'%';
+      el.style.height = Math.max(h,0.4)+'%';
+      el.addEventListener('mouseenter', e => showGapTip(e,g));
+      el.addEventListener('mousemove',  moveTip);
+      el.addEventListener('mouseleave', hideTip);
+      bar.appendChild(el);
+    });
+    // Segments
+    valid.forEach((r,i) => {
+      const top  = ((r.offset-addrMin)/addrSpan)*100;
+      const h    = (r.size/addrSpan)*100;
+      const isOv = overlapping.has(i);
+      const seg  = document.createElement('div');
+      seg.className = 'segment'+(isOv?' overlap':'')+(r.ref&&r.ref.startsWith('http')?' clickable':'');
+      seg.style.top        = top+'%';
+      seg.style.height     = Math.max(h,0.4)+'%';
+      seg.style.background = isOv?'rgba(229,83,75,.14)':r.color+'28';
+      seg.style.borderTop  = '1px solid '+(isOv?'var(--err)':r.color);
+      if (h>2.5) {
+        const lbl = document.createElement('div');
+        lbl.className='seg-label'; lbl.textContent=r.name||'-';
+        lbl.style.color=isOv?'var(--err)':r.color;
+        seg.appendChild(lbl);
+      }
+      seg.addEventListener('mouseenter', e=>showTip(e,r,isOv));
+      seg.addEventListener('mousemove',  moveTip);
+      seg.addEventListener('mouseleave', hideTip);
+      if (r.ref&&r.ref.startsWith('http')) seg.addEventListener('click',()=>window.open(r.ref,'_blank'));
+      bar.appendChild(seg);
+    });
+    // Ticks
+    const tickAddrs = [...new Set([addrMin,...valid.map(r=>r.offset),addrMax])].sort((a,b)=>a-b);
+    let lastPct = -99;
+    tickAddrs.forEach(addr => {
+      const pct = ((addr-addrMin)/addrSpan)*100;
+      if (pct-lastPct<6 && addr!==addrMax) return;
+      lastPct=pct;
+      const tick=document.createElement('div');
+      tick.className='addr-tick'; tick.style.top=pct+'%'; tick.textContent=fmtHex(addr);
+      addrEl.appendChild(tick);
+    });
+
+  // ── RULER MODE ──
   } else {
-    wPanel.classList.remove('visible');
+    // Interleave gaps + segments in address order
+    const allItems = [];
+    let gapIdx=0;
+    valid.forEach((r,i) => {
+      while (gapIdx<gaps.length && gaps[gapIdx].offset < r.offset) {
+        allItems.push({type:'gap',data:gaps[gapIdx++]});
+      }
+      allItems.push({type:'seg',data:r,i});
+    });
+    while (gapIdx<gaps.length) allItems.push({type:'gap',data:gaps[gapIdx++]});
+
+    allItems.forEach(item => {
+      if (item.type==='gap') {
+        const g=item.data;
+        const el=document.createElement('div');
+        el.className='gap-segment';
+        const lbl=document.createElement('div');
+        lbl.className='seg-sublabel'; lbl.style.color='var(--muted)';
+        lbl.textContent=fmtHex(g.offset)+' · '+fmtSize(g.size)+' unallocated';
+        el.appendChild(lbl);
+        el.addEventListener('mouseenter',e=>showGapTip(e,g));
+        el.addEventListener('mousemove', moveTip);
+        el.addEventListener('mouseleave',hideTip);
+        bar.appendChild(el);
+      } else {
+        const r=item.data, i=item.i, isOv=overlapping.has(i);
+        const seg=document.createElement('div');
+        seg.className='segment'+(isOv?' overlap':'')+(r.ref&&r.ref.startsWith('http')?' clickable':'');
+        seg.style.background=isOv?'rgba(229,83,75,.14)':r.color+'28';
+        seg.style.borderTop ='1px solid '+(isOv?'var(--err)':r.color);
+        const lbl=document.createElement('div');
+        lbl.className='seg-label'; lbl.textContent=r.name||'-';
+        lbl.style.color=isOv?'var(--err)':r.color;
+        const sub=document.createElement('div');
+        sub.className='seg-sublabel'; sub.style.color=isOv?'var(--err)':r.color;
+        sub.textContent=fmtHex(r.offset)+' · '+fmtSize(r.size);
+        seg.appendChild(lbl); seg.appendChild(sub);
+        seg.addEventListener('mouseenter',e=>showTip(e,r,isOv));
+        seg.addEventListener('mousemove', moveTip);
+        seg.addEventListener('mouseleave',hideTip);
+        if (r.ref&&r.ref.startsWith('http')) seg.addEventListener('click',()=>window.open(r.ref,'_blank'));
+        bar.appendChild(seg);
+      }
+    });
   }
 
-  // ── Draw gap regions first (behind segments) ──
-  gaps.forEach(g => {
-    const top    = ((g.offset - addrMin) / addrSpan) * 100;
-    const height = (g.size / addrSpan) * 100;
-    const gap = document.createElement('div');
-    gap.className = 'gap-segment';
-    gap.style.top    = top + '%';
-    gap.style.height = Math.max(height, 0.4) + '%';
-    gap.addEventListener('mouseenter', e => showGapTip(e, g));
-    gap.addEventListener('mousemove',  moveTip);
-    gap.addEventListener('mouseleave', hideTip);
-    bar.appendChild(gap);
-  });
-
-  // ── Draw segments ──
-  valid.forEach((r, i) => {
-    const top    = ((r.offset - addrMin) / addrSpan) * 100;
-    const height = (r.size   / addrSpan) * 100;
-    const isOv   = overlapping.has(i);
-
-    const seg = document.createElement('div');
-    seg.className = 'segment'
-      + (isOv ? ' overlap' : '')
-      + (r.ref && r.ref.startsWith('http') ? ' clickable' : '');
-    seg.style.top        = top + '%';
-    seg.style.height     = Math.max(height, 0.4) + '%';
-    seg.style.background = isOv ? 'rgba(229,83,75,.14)' : r.color + '28';
-    seg.style.borderTop  = '1px solid ' + (isOv ? 'var(--err)' : r.color);
-
-    if (height > 2.5) {
-      const lbl = document.createElement('div');
-      lbl.className = 'seg-label';
-      lbl.textContent = r.name || '-';
-      lbl.style.color = isOv ? 'var(--err)' : r.color;
-      seg.appendChild(lbl);
-    }
-    seg.addEventListener('mouseenter', e => showTip(e, r, isOv));
-    seg.addEventListener('mousemove',  moveTip);
-    seg.addEventListener('mouseleave', hideTip);
-    if (r.ref && r.ref.startsWith('http')) seg.addEventListener('click', () => window.open(r.ref, '_blank'));
-    bar.appendChild(seg);
-  });
-
-  // ── Address ticks ──
-  const tickAddrs = [...new Set([addrMin, ...valid.map(r => r.offset), addrMax])].sort((a,b)=>a-b);
-  let lastPct = -99;
-  tickAddrs.forEach(addr => {
-    const pct = ((addr - addrMin) / addrSpan) * 100;
-    if (pct - lastPct < 6 && addr !== addrMax) return;
-    lastPct = pct;
-    const tick = document.createElement('div');
-    tick.className = 'addr-tick';
-    tick.style.top = pct + '%';
-    tick.textContent = fmtHex(addr);
-    addrEl.appendChild(tick);
-  });
-
-  return { valid, overlapping };
+  return {valid, overlapping};
 }
 
-// ── Master render (keeps table + viz in sync) ─────────────────────────
+// ── Table render ──────────────────────────────────────────────────────
+function renderTable(overlapping) {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  const validSorted = rows
+    .map((r,origIdx)=>({offset:parseNum(r.offset),size:parseNum(r.size),name:r.name,ref:r.ref,color:r.color,origIdx}))
+    .filter(r=>!isNaN(r.offset)&&!isNaN(r.size)&&r.size>0);
+  validSorted.sort((a,b)=>a.offset-b.offset);
+  const overlapOrigIdxs = new Set([...overlapping].map(i=>validSorted[i]?.origIdx));
+
+  rows.forEach((row,i) => {
+    const isOv = overlapOrigIdxs.has(i);
+    const tr   = document.createElement('tr');
+    if (isOv) tr.classList.add('row-overlap');
+    tr.innerHTML =
+      '<td class="warn-cell">'+(isOv?'<span class="warn-icon" title="Overlaps another region">!</span>':'')+'</td>'+
+      '<td class="color-cell"><input type="color" class="color-pick" data-i="'+i+'" value="'+row.color+'" title="Pick color"></td>'+
+      '<td><input data-i="'+i+'" data-f="offset" value="'+row.offset+'" placeholder="0x0000"></td>'+
+      '<td><input data-i="'+i+'" data-f="size"   value="'+row.size+'"   placeholder="0x400"></td>'+
+      '<td><input data-i="'+i+'" data-f="name"   value="'+row.name+'"   placeholder="Region name"></td>'+
+      '<td><input data-i="'+i+'" data-f="ref"    value="'+row.ref+'"    placeholder="https://..."></td>'+
+      '<td><button class="del-btn" title="Delete" onclick="deleteRow('+i+')">&#215;</button></td>';
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('.color-pick').forEach(p => {
+    p.addEventListener('input', e => { rows[+e.target.dataset.i].color=e.target.value; saveState(); render(); });
+  });
+  tbody.querySelectorAll('input[data-f]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const i=+e.target.dataset.i, f=e.target.dataset.f;
+      rows[i][f]=e.target.value;
+      validateInput(e.target,f); saveState(); render();
+    });
+  });
+  validateAll();
+}
+
+function validateInput(inp,f) {
+  if (f==='offset'||f==='size') {
+    const v=parseNum(inp.value);
+    inp.classList.toggle('invalid', isNaN(v)||(f==='size'&&v<=0));
+  }
+}
+function validateAll() {
+  document.querySelectorAll('#tbody input[data-f]').forEach(inp=>validateInput(inp,inp.dataset.f));
+}
+
+// ── Master render ─────────────────────────────────────────────────────
 function render() {
-  const result = renderViz();
-  const overlapping = result && result.overlapping ? result.overlapping : new Set();
+  const {overlapping} = renderViz();
   renderTable(overlapping);
 }
 
-// ── Tooltips ──────────────────────────────────────────────────────────
-function showTip(e, r, isOverlap) {
-  const tt = document.getElementById('tooltip');
-  tt.innerHTML =
-    '<div class="tt-name" style="color:' + (isOverlap ? 'var(--err)' : r.color) + '">' + (r.name || '(unnamed)') + '</div>' +
-    '<div class="tt-row">Start &nbsp;<b>' + fmtHex(r.offset) + '</b></div>' +
-    '<div class="tt-row">Size &nbsp;&nbsp;<b>' + fmtHex(r.size) + ' (' + fmtSize(r.size) + ')</b></div>' +
-    '<div class="tt-row">End &nbsp;&nbsp;&nbsp;<b>' + fmtHex(r.offset + r.size) + '</b></div>' +
-    (r.ref ? '<div class="tt-row" style="margin-top:5px;color:' + r.color + '">' + r.ref + '</div>' : '') +
-    (isOverlap ? '<div class="tt-warn">&#9888; Overlaps another region</div>' : '');
-  tt.style.display = 'block';
-  moveTip(e);
+// ── CSV export ────────────────────────────────────────────────────────
+function exportCSV() {
+  const header = 'Offset,Size,Name,Reference,Color';
+  const body   = rows.map(r =>
+    [r.offset, r.size, '"'+r.name.replace(/"/g,'""')+'"', '"'+(r.ref||'').replace(/"/g,'""')+'"', r.color].join(',')
+  ).join('\n');
+  const csv  = header + '\n' + body;
+  const blob = new Blob([csv], {type:'text/csv'});
+  const link = document.createElement('a');
+  link.href     = URL.createObjectURL(blob);
+  link.download = 'memory-map.csv';
+  link.click();
 }
-function showGapTip(e, g) {
-  const tt = document.getElementById('tooltip');
-  tt.innerHTML =
-    '<div class="tt-name tt-gap">Unallocated</div>' +
-    '<div class="tt-row">Start &nbsp;<b>' + fmtHex(g.offset) + '</b></div>' +
-    '<div class="tt-row">Size &nbsp;&nbsp;<b>' + fmtHex(g.size) + ' (' + fmtSize(g.size) + ')</b></div>' +
-    '<div class="tt-row">End &nbsp;&nbsp;&nbsp;<b>' + fmtHex(g.offset + g.size) + '</b></div>';
-  tt.style.display = 'block';
-  moveTip(e);
+
+// ── CSV import ────────────────────────────────────────────────────────
+function openImport() {
+  document.getElementById('csvModal').classList.add('open');
+  document.getElementById('csvErr').classList.remove('visible');
+  document.getElementById('csvInput').value = '';
+  document.getElementById('csvInput').focus();
+}
+function closeImport() { document.getElementById('csvModal').classList.remove('open'); }
+
+function doImport() {
+  const raw  = document.getElementById('csvInput').value.trim();
+  const errEl = document.getElementById('csvErr');
+  errEl.classList.remove('visible');
+  if (!raw) { errEl.textContent='Paste some CSV first.'; errEl.classList.add('visible'); return; }
+
+  const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l && !l.toLowerCase().startsWith('offset'));
+  if (!lines.length) { errEl.textContent='No data rows found.'; errEl.classList.add('visible'); return; }
+
+  const parsed = [];
+  for (let li=0; li<lines.length; li++) {
+    // Simple CSV parse (handles quoted fields)
+    const cols = [];
+    let cur='', inQ=false;
+    for (let c=0; c<lines[li].length; c++) {
+      const ch=lines[li][c];
+      if (ch==='"') { inQ=!inQ; }
+      else if (ch===','&&!inQ) { cols.push(cur.trim()); cur=''; }
+      else { cur+=ch; }
+    }
+    cols.push(cur.trim());
+
+    const [offset,size,name,ref='',color=''] = cols;
+    if (isNaN(parseNum(offset))) { errEl.textContent='Row '+(li+1)+': invalid offset "'+offset+'".'; errEl.classList.add('visible'); return; }
+    if (isNaN(parseNum(size))||parseNum(size)<=0) { errEl.textContent='Row '+(li+1)+': invalid size "'+size+'".'; errEl.classList.add('visible'); return; }
+    const finalColor = /^#[0-9a-fA-F]{6}$/.test(color.trim()) ? color.trim() : PALETTE[parsed.length % PALETTE.length];
+    parsed.push({offset:offset.trim(), size:size.trim(), name:(name||'').trim(), ref:(ref||'').trim(), color:finalColor});
+  }
+
+  rows = parsed;
+  saveState();
+  render();
+  closeImport();
+}
+
+// close modal on overlay click
+document.getElementById('csvModal').addEventListener('click', e => { if (e.target===e.currentTarget) closeImport(); });
+// close on Escape
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeImport(); });
+
+// ── Tooltips ──────────────────────────────────────────────────────────
+function showTip(e,r,isOv) {
+  const tt=document.getElementById('tooltip');
+  tt.innerHTML=
+    '<div class="tt-name" style="color:'+(isOv?'var(--err)':r.color)+'">'+(r.name||'(unnamed)')+'</div>'+
+    '<div class="tt-row">Start &nbsp;<b>'+fmtHex(r.offset)+'</b></div>'+
+    '<div class="tt-row">Size &nbsp;&nbsp;<b>'+fmtHex(r.size)+' ('+fmtSize(r.size)+')</b></div>'+
+    '<div class="tt-row">End &nbsp;&nbsp;&nbsp;<b>'+fmtHex(r.offset+r.size)+'</b></div>'+
+    (r.ref?'<div class="tt-row" style="margin-top:5px;color:'+r.color+'">'+r.ref+'</div>':'')+
+    (isOv?'<div class="tt-warn">&#9888; Overlaps another region</div>':'');
+  tt.style.display='block'; moveTip(e);
+}
+function showGapTip(e,g) {
+  const tt=document.getElementById('tooltip');
+  tt.innerHTML=
+    '<div class="tt-name tt-gap">Unallocated</div>'+
+    '<div class="tt-row">Start &nbsp;<b>'+fmtHex(g.offset)+'</b></div>'+
+    '<div class="tt-row">Size &nbsp;&nbsp;<b>'+fmtHex(g.size)+' ('+fmtSize(g.size)+')</b></div>'+
+    '<div class="tt-row">End &nbsp;&nbsp;&nbsp;<b>'+fmtHex(g.offset+g.size)+'</b></div>';
+  tt.style.display='block'; moveTip(e);
 }
 function moveTip(e) {
-  const tt = document.getElementById('tooltip');
-  const x = e.clientX + 14, y = e.clientY - 10;
-  tt.style.left = (x + tt.offsetWidth > window.innerWidth ? x - tt.offsetWidth - 20 : x) + 'px';
-  tt.style.top  = y + 'px';
+  const tt=document.getElementById('tooltip');
+  const x=e.clientX+14, y=e.clientY-10;
+  tt.style.left=(x+tt.offsetWidth>window.innerWidth?x-tt.offsetWidth-20:x)+'px';
+  tt.style.top=y+'px';
 }
-function hideTip() { document.getElementById('tooltip').style.display = 'none'; }
+function hideTip() { document.getElementById('tooltip').style.display='none'; }
 
 // ── Row ops ───────────────────────────────────────────────────────────
 function addRow() {
-  rows.push({ offset:'', size:'', name:'', ref:'', color: PALETTE[rows.length % PALETTE.length] });
+  rows.push({offset:'',size:'',name:'',ref:'',color:PALETTE[rows.length%PALETTE.length]});
   saveState(); render();
   document.querySelectorAll('#tbody tr:last-child input[data-f]')[0]?.focus();
 }
-
-function deleteRow(i) {
-  rows.splice(i, 1);
-  saveState(); render();
-}
+function deleteRow(i) { rows.splice(i,1); saveState(); render(); }
 
 // ── Screenshot ────────────────────────────────────────────────────────
 async function takeScreenshot() {
-  const btn = document.getElementById('screenshotBtn');
-  btn.textContent = '...';
-  btn.classList.add('capturing');
+  const btn=document.getElementById('screenshotBtn');
+  btn.textContent='...'; btn.classList.add('capturing');
   if (!window.html2canvas) {
-    await new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload=res; s.onerror=rej; document.head.appendChild(s);
     });
   }
-  const toHide = document.querySelectorAll('.del-btn, #screenshotBtn');
-  toHide.forEach(el => el.style.visibility = 'hidden');
-  const isLight = document.body.classList.contains('light');
+  const toHide=document.querySelectorAll('.del-btn,#screenshotBtn');
+  toHide.forEach(el=>el.style.visibility='hidden');
+  const isLight=document.body.classList.contains('light');
   try {
-    const canvas = await html2canvas(document.querySelector('.main'), {
-      backgroundColor: isLight ? '#f6f8fa' : '#0d1117', scale:2, useCORS:true
-    });
-    const full = document.createElement('canvas');
-    const hdr  = document.querySelector('.header');
-    const hh   = hdr.offsetHeight;
-    full.width  = canvas.width;
-    full.height = canvas.height + hh * 2;
-    const ctx = full.getContext('2d');
-    ctx.fillStyle = isLight ? '#ffffff' : '#161b22';
-    ctx.fillRect(0, 0, full.width, hh * 2);
-    const hCanvas = await html2canvas(hdr, {
-      backgroundColor: isLight ? '#ffffff' : '#161b22', scale:2, useCORS:true
-    });
-    ctx.drawImage(hCanvas, 0, 0);
-    ctx.drawImage(canvas, 0, hh * 2);
-    const link = document.createElement('a');
-    link.download = 'memory-map-' + Date.now() + '.png';
-    link.href = full.toDataURL('image/png');
-    link.click();
+    const canvas=await html2canvas(document.querySelector('.main'),{backgroundColor:isLight?'#f6f8fa':'#0d1117',scale:2,useCORS:true});
+    const full=document.createElement('canvas');
+    const hdr=document.querySelector('.header'), hh=hdr.offsetHeight;
+    full.width=canvas.width; full.height=canvas.height+hh*2;
+    const ctx=full.getContext('2d');
+    ctx.fillStyle=isLight?'#ffffff':'#161b22'; ctx.fillRect(0,0,full.width,hh*2);
+    const hc=await html2canvas(hdr,{backgroundColor:isLight?'#ffffff':'#161b22',scale:2,useCORS:true});
+    ctx.drawImage(hc,0,0); ctx.drawImage(canvas,0,hh*2);
+    const link=document.createElement('a');
+    link.download='memory-map-'+Date.now()+'.png'; link.href=full.toDataURL('image/png'); link.click();
   } finally {
-    toHide.forEach(el => el.style.visibility = '');
-    btn.textContent = 'Export PNG';
-    btn.classList.remove('capturing');
+    toHide.forEach(el=>el.style.visibility='');
+    btn.textContent='Export PNG'; btn.classList.remove('capturing');
   }
 }
 
 // ── Theme ─────────────────────────────────────────────────────────────
 function toggleTheme() {
-  const light = document.body.classList.toggle('light');
-  document.getElementById('themeBtn').textContent = light ? '\u263C' : '\u263E';
-  try { localStorage.setItem('memmap-theme', light ? 'light' : 'dark'); } catch(e) {}
+  const light=document.body.classList.toggle('light');
+  document.getElementById('themeBtn').textContent=light?'\u263C':'\u263E';
+  try { localStorage.setItem('memmap-theme',light?'light':'dark'); } catch(e) {}
 }
 
 // ── Init ──────────────────────────────────────────────────────────────
 (function() {
+  try { if (localStorage.getItem('memmap-theme')==='light') document.body.classList.add('light'); } catch(e) {}
+  // restore budget
   try {
-    if (localStorage.getItem('memmap-theme') === 'light') document.body.classList.add('light');
+    const b=localStorage.getItem('memmap-budget');
+    if (b) { document.getElementById('budgetInput').value=b; budgetVal=parseNum(b); }
   } catch(e) {}
 })();
 
 render();
-document.getElementById('themeBtn').textContent =
-  document.body.classList.contains('light') ? '\u263C' : '\u263E';
+document.getElementById('themeBtn').textContent=document.body.classList.contains('light')?'\u263C':'\u263E';
 </script>
 
 </body>
